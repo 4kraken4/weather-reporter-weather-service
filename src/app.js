@@ -20,6 +20,6 @@ service.use(errorHandler);
 service.listen(serviceConfig.port, async () => {
   await connectWithResilience();
   console.log(
-    `Server is running on ${serviceConfig.protocol}://${serviceConfig.host}:${serviceConfig.port}`
+    `Server is running on ${serviceConfig.protocol}://${serviceConfig.host}${serviceConfig.protocol === 'https' ? '' : `:${serviceConfig.port}`}`
   );
 });
