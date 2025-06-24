@@ -161,7 +161,7 @@ const connectWithCredentials = async () => {
     await mongoose.connect(connectionString, {
       maxIdleTimeMS: 30000,
       autoIndex: true,
-      serverSelectionTimeoutMS: 5000,
+      serverSelectionTimeoutMS: 30000,
       socketTimeoutMS: 45000,
       heartbeatFrequencyMS: 10000,
       authSource: 'admin', // Use 'admin' for username/password auth
