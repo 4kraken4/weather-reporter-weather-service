@@ -14,7 +14,6 @@ service.disable('x-powered-by');
 service.disable('etag');
 service.use(express.json());
 service.use(express.urlencoded({ extended: true }));
-service.use(express.static('public'));
 service.use(`/${serviceConfig.routePrefix}`, router);
 service.use(errorHandler);
 
