@@ -85,21 +85,17 @@ const connectToDatabase = async () => {
       authMechanism: 'MONGODB-X509',
       authSource: '$external',
       dbName: database_name,
-      // Connection pooling configuration
-      maxIdleTimeMS: 30000, // Close sockets after 30 seconds of inactivity
-      // Reliability settings
-      serverSelectionTimeoutMS: 5000, // Timeout for server selection
-      socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
-      heartbeatFrequencyMS: 10000, // Heartbeat frequency
-      // Retry settings
+      maxIdleTimeMS: 30000,
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 45000,
+      heartbeatFrequencyMS: 10000,
       retryWrites: true,
       retryReads: true,
-      w: 'majority' // Write concern
+      w: 'majority'
     });
     return true;
     // eslint-disable-next-line no-unused-vars
   } catch (error) {
-    // Retry logic using the helper function
     return retryConnection(
       connectToDatabase,
       'certificate authentication',
@@ -121,7 +117,7 @@ const connectWithCredentials = async () => {
       'Attempting to connect to database with username/password authentication'
     );
 
-    const username = config.getInstance().db.mongo.username;
+    const username = config.getInstance().db.mongo.user;
     const password = config.getInstance().db.mongo.password;
     const cluster_name = config.getInstance().db.mongo.cluster;
     const database_name = config.getInstance().db.mongo.dbName;
@@ -163,20 +159,15 @@ const connectWithCredentials = async () => {
     )}?retryWrites=true&w=majority&appName=${encodeURIComponent(cluster_name)}`;
 
     await mongoose.connect(connectionString, {
-      // Connection pooling configuration
-      maxIdleTimeMS: 30000, // Close sockets after 30 seconds of inactivity
-      // Performance optimizations
+      maxIdleTimeMS: 30000,
       autoIndex: true,
-      // Reliability settings
-      serverSelectionTimeoutMS: 5000, // Timeout for server selection
-      socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
-      heartbeatFrequencyMS: 10000, // Heartbeat frequency
-      // Authentication
-      authSource: '$external',
-      // Retry settings
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 45000,
+      heartbeatFrequencyMS: 10000,
+      authSource: 'admin', // Use 'admin' for username/password auth
       retryWrites: true,
       retryReads: true,
-      w: 'majority' // Write concern
+      w: 'majority'
     });
 
     return true;
