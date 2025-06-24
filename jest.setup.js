@@ -1,4 +1,4 @@
-import { jest } from '@jest/globals'
+import { jest } from '@jest/globals';
 
 // eslint-disable-next-line no-undef
-global.jest = jest
+global.jest = jest;

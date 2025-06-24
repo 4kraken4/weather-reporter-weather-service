@@ -24,8 +24,6 @@ class DatabaseFailover {
     this.connectFn = options.connectFn;
     this.isUsingBackup = false;
     this.lastError = null;
-
-    console.debug('Database failover initialized');
   }
 
   /**
@@ -36,12 +34,8 @@ class DatabaseFailover {
   async connect() {
     try {
       return await this._connectToPrimary();
-    } catch (error) {
-      console.debug('Failed to connect to any database', {
-        error: error.message,
-        stack: error.stack
-      });
-      throw error;
+    } catch {
+      throw new Error('DbConnectionError');
     }
   }
 
@@ -52,8 +46,6 @@ class DatabaseFailover {
    */
   async _connectToPrimary() {
     try {
-      console.debug('Attempting to connect to primary database');
-
       if (!this.connectFn) {
         throw new Error('No database connection function provided');
       }
@@ -61,19 +53,13 @@ class DatabaseFailover {
       const result = await this.connectFn();
 
       if (this.isUsingBackup) {
-        console.debug('Successfully reconnected to primary database');
         this.isUsingBackup = false;
       }
 
       return result;
     } catch (error) {
       this.lastError = error;
-      console.debug('Failed to connect to primary database', {
-        error: error.message,
-        stack: error.stack
-      });
-
-      throw error;
+      throw new Error('DbConnectionError');
     }
   }
 
@@ -85,16 +71,13 @@ class DatabaseFailover {
    */
   async _connectToBackup() {
     if (!this.backupConfig) {
-      console.debug('No backup database configured');
-      throw new Error(
-        'No backup database configured and primary database is unavailable'
-      );
+      console.warn('No backup database configured');
+      throw new Error('NoBackupDatabaseConfiguredError');
     }
 
     try {
-      console.debug('Attempting to connect to backup database');
-
       // Store original config
+      // eslint-disable-next-line no-unused-vars
       const originalConfig = { ...config.getInstance().db };
 
       // Temporarily replace with backup config
@@ -106,18 +89,15 @@ class DatabaseFailover {
       // Mark that we're using backup
       this.isUsingBackup = true;
 
-      console.debug('Successfully connected to backup database');
+      // eslint-disable-next-line no-console
+      console.info('Successfully connected to backup database');
 
       // Schedule attempt to reconnect to primary
       this._scheduleReconnectToPrimary();
 
       return result;
-    } catch (error) {
-      console.debug('Failed to connect to backup database', {
-        error: error.message,
-        stack: error.stack
-      });
-      throw error;
+    } catch {
+      throw new Error('DbConnectionError');
     }
   }
 
@@ -128,7 +108,8 @@ class DatabaseFailover {
   _scheduleReconnectToPrimary() {
     const reconnectInterval = this.primaryConfig.reconnectInterval || 60000; // 1 minute
 
-    console.debug(
+    // eslint-disable-next-line no-console
+    console.info(
       `Scheduling reconnect to primary database in ${reconnectInterval}ms`
     );
 
@@ -140,6 +121,7 @@ class DatabaseFailover {
         }
 
         await this._connectToPrimary();
+        // eslint-disable-next-line no-unused-vars
       } catch (error) {
         // If reconnection fails, schedule another attempt
         this._scheduleReconnectToPrimary();

@@ -19,68 +19,59 @@ export class RegionRepositoryImpl extends RegionRepository {
     sortBy
   }) {
     if (!partialName || typeof partialName !== 'string' || partialName.length < 2) {
-      throw new Error('Partial name must be at least 2 characters');
+      throw new Error('InvalidRegionSearchTermError');
+    }
+    const query = {
+      name: { $regex: partialName, $options: 'i' },
+      'stat.population': { $gte: minPopulation }
+    };
+
+    if (country) {
+      query.country = country;
     }
 
-    try {
-      const query = {
-        name: { $regex: partialName, $options: 'i' },
-        'stat.population': { $gte: minPopulation }
-      };
+    const projection = {
+      _id: 0,
+      id: 1,
+      name: 1,
+      country: 1,
+      coord: 1,
+      'stat.population': 1,
+      zoom: 1
+    };
 
-      if (country) {
-        query.country = country;
-      }
+    // Get total count for pagination
+    const totalCount = await Regions.countDocuments(query);
 
-      const projection = {
-        _id: 0,
-        id: 1,
-        name: 1,
-        country: 1,
-        coord: 1,
-        'stat.population': 1,
-        zoom: 1
-      };
+    // Calculate skip value
+    const skip = (page - 1) * pageSize;
 
-      // Get total count for pagination
-      const totalCount = await Regions.countDocuments(query);
-
-      // Calculate skip value
-      const skip = (page - 1) * pageSize;
-
-      // Determine sort order
-      const sortOrder = {};
-      if (sortBy === 'population') {
-        sortOrder['stat.population'] = -1;
-      } else {
-        sortOrder.name = 1; // Default sort by name ascending
-      }
-
-      const results = await Regions.find(query)
-        .select(projection)
-        .sort(sortOrder)
-        .skip(skip)
-        .limit(pageSize)
-        .lean()
-        .exec();
-
-      return {
-        results: results.map(city => ({
-          ...city,
-          displayName: this._getDisplayName(city),
-          location: city.coord
-            ? {
-                longitude: city.coord.lon,
-                latitude: city.coord.lat
-              }
-            : null
-        })),
-        totalCount
-      };
-    } catch (error) {
-      console.debug('Search failed:', error);
-      throw new Error('Failed to search cities');
+    // Determine sort order
+    const sortOrder = {};
+    if (sortBy === 'population') {
+      sortOrder['stat.population'] = -1;
+    } else {
+      sortOrder.name = 1; // Default sort by name ascending
     }
+
+    const results = await Regions.find(query)
+      .select(projection)
+      .sort(sortOrder)
+      .skip(skip)
+      .limit(pageSize)
+      .lean()
+      .exec();
+
+    return {
+      results: results.map(city => ({
+        ...city,
+        displayName: this._getDisplayName(city),
+        location: city.coord
+          ? { longitude: city.coord.lon, latitude: city.coord.lat }
+          : null
+      })),
+      totalCount
+    };
   }
 
   // Helper function to get the best display name from langs array
