@@ -3,10 +3,12 @@
  * @module connectionMethods
  */
 
-import mongoose from 'mongoose'
-import config from '../src/config/Config.js'
-import { DatabaseConnectionError } from '../src/infrastructure/errors/index.js'
-import { retryConnection } from './connectionHelpers.js'
+import mongoose from 'mongoose';
+
+import config from '../src/config/Config.js';
+import { DatabaseConnectionError } from '../src/infrastructure/errors/index.js';
+
+import { retryConnection } from './connectionHelpers.js';
 
 /**
  * Connects to the MongoDB database using certificate authentication.
@@ -19,63 +21,63 @@ import { retryConnection } from './connectionHelpers.js'
  * Sets the default promise library to use for Mongoose.
  * @type {PromiseConstructor}
  */
-mongoose.Promise = Promise
+mongoose.Promise = Promise;
 
 /**
  * Event listener for the 'error' event of the database connection.
  * @param {Error} error - The error object.
  */
-mongoose.connection.on('error', (error) => {
+mongoose.connection.on('error', error => {
   throw new DatabaseConnectionError(
     'Failed to connect to the database',
     'DB_CONNECTION_ERROR',
     { originalError: error.message }
-  )
-})
+  );
+});
 
 /**
  * Event listener for the 'open' event of the database connection.
  */
 mongoose.connection.once('open', () => {
-  console.debug('Database connection established successfully')
-})
+  // eslint-disable-next-line no-console
+  console.debug('Database connection established successfully');
+});
 
 /**
  * Event listener for the 'disconnected' event of the database connection.
  */
 mongoose.connection.on('disconnected', () => {
-  console.warn('Database connection lost. Attempting to reconnect...')
-})
+  console.warn('Database connection lost. Attempting to reconnect...');
+});
 
 /**
  * Event listener for the 'reconnected' event of the database connection.
  */
 mongoose.connection.on('reconnected', () => {
-  console.debug('Successfully reconnected to the database')
-})
+  // eslint-disable-next-line no-console
+  console.debug('Successfully reconnected to the database');
+});
 
 const connectToDatabase = async () => {
+  // eslint-disable-next-line no-console
+  console.debug('Attempting to connect to database with certificate authentication');
   try {
-    console.debug(
-      'Attempting to connect to database with certificate authentication'
-    )
-
-    const credentials = config.getInstance().db.mongo.certPath
-    const connection_string = config.getInstance().db.mongo.connection
-    const database_name = config.getInstance().db.mongo.dbName
+    const credentials = config.getInstance().db.mongo.certPath;
+    const connection_string = config.getInstance().db.mongo.connection;
+    const database_name = config.getInstance().db.mongo.dbName;
 
     if (!connection_string) {
       throw new DatabaseConnectionError(
         'Database connection string is missing',
         'DB_CONNECTION_STRING_MISSING'
-      )
+      );
     }
 
     if (!credentials) {
       throw new DatabaseConnectionError(
         'Database certificate path is missing',
         'DB_CERTIFICATE_MISSING'
-      )
+      );
     }
 
     await mongoose.connect(connection_string, {
@@ -93,30 +95,18 @@ const connectToDatabase = async () => {
       retryWrites: true,
       retryReads: true,
       w: 'majority' // Write concern
-    })
-
-    console.debug(`Database connection established with '${database_name}' using certificate authentication`)
-    return true
+    });
+    return true;
+    // eslint-disable-next-line no-unused-vars
   } catch (error) {
-    // Log the error with context
-    console.debug('Failed to connect to database', {
-      error: error.message,
-      stack: error.stack,
-      connectionString: config.getInstance().db.mongo.connection
-        ? '[REDACTED]'
-        : 'undefined',
-      certificatePath: config.getInstance().db.mongo.certPath || 'undefined',
-      databaseName: config.getInstance().db.mongo.dbName
-    })
-
     // Retry logic using the helper function
-    return await retryConnection(
+    return retryConnection(
       connectToDatabase,
       'certificate authentication',
       'DB_CONNECTION_RETRY_FAILED'
-    )
+    );
   }
-}
+};
 
 /**
  * Connects to the MongoDB database using username and password authentication.
@@ -126,39 +116,43 @@ const connectToDatabase = async () => {
  */
 const connectWithCredentials = async () => {
   try {
+    // eslint-disable-next-line no-console
     console.debug(
       'Attempting to connect to database with username/password authentication'
-    )
+    );
 
-    const username = config.getInstance().db.mongo.username
-    const password = config.getInstance().db.mongo.password
-    const cluster_name = config.getInstance().db.mongo.cluster
-    const database_name = config.getInstance().db.mongo.dbName
+    const username = config.getInstance().db.mongo.username;
+    const password = config.getInstance().db.mongo.password;
+    const cluster_name = config.getInstance().db.mongo.cluster;
+    const database_name = config.getInstance().db.mongo.dbName;
 
     // Validate required parameters
     if (!username) {
       throw new DatabaseConnectionError(
         'Database username is missing',
         'DB_USERNAME_MISSING'
-      )
+      );
     }
 
     if (!password) {
       throw new DatabaseConnectionError(
         'Database password is missing',
         'DB_PASSWORD_MISSING'
-      )
+      );
     }
 
     if (!cluster_name) {
       throw new DatabaseConnectionError(
         'Database cluster name is missing',
         'DB_CLUSTER_MISSING'
-      )
+      );
     }
 
     if (!database_name) {
-      throw new DatabaseConnectionError('Database name is missing', 'DB_NAME_MISSING')
+      throw new DatabaseConnectionError(
+        'Database name is missing',
+        'DB_NAME_MISSING'
+      );
     }
 
     // Construct a connection string with proper encoding
@@ -166,7 +160,7 @@ const connectWithCredentials = async () => {
       password
     )}@${encodeURIComponent(cluster_name)}.wyprrfj.mongodb.net/${encodeURIComponent(
       database_name
-    )}?retryWrites=true&w=majority&appName=${encodeURIComponent(cluster_name)}`
+    )}?retryWrites=true&w=majority&appName=${encodeURIComponent(cluster_name)}`;
 
     await mongoose.connect(connectionString, {
       // Connection pooling configuration
@@ -183,29 +177,18 @@ const connectWithCredentials = async () => {
       retryWrites: true,
       retryReads: true,
       w: 'majority' // Write concern
-    })
+    });
 
-    console.debug(
-      `Database connection established with ${database_name} using username/password authentication`
-    )
-    return true
+    return true;
+    // eslint-disable-next-line no-unused-vars
   } catch (error) {
-    // Log the error with context
-    console.debug('Failed to connect to database with credentials', {
-      error: error.message,
-      stack: error.stack,
-      username: config.getInstance().db.mongo.username ? '[REDACTED]' : 'undefined',
-      clusterName: config.getInstance().db.mongo.cluster || 'undefined',
-      databaseName: config.getInstance().db.mongo.dbName || 'undefined'
-    })
-
     // Retry logic using the helper function
-    return await retryConnection(
+    return retryConnection(
       connectWithCredentials,
       'username/password authentication',
       'DB_CREDENTIALS_CONNECTION_RETRY_FAILED'
-    )
+    );
   }
-}
+};
 
-export { connectToDatabase, connectWithCredentials }
+export { connectToDatabase, connectWithCredentials };

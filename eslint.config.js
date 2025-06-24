@@ -11,8 +11,8 @@ export default [
       '**/node_modules/**',
       '**/*.test.js',
       '**/*.spec.js',
-      '**/logs/**',
-    ],
+      '**/logs/**'
+    ]
   },
   js.configs.recommended,
   prettierConfig,
@@ -21,7 +21,7 @@ export default [
     languageOptions: { globals: globals.browser },
     plugins: {
       'eslint-import': eslintImport,
-      prettier,
+      prettier
     },
 
     rules: {
@@ -40,7 +40,7 @@ export default [
       'no-alert': 'error',
       'no-unused-vars': [
         'error',
-        { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
+        { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }
       ],
       'no-var': 'error',
       'no-console': ['warn', { allow: ['warn', 'error'] }],
@@ -78,9 +78,9 @@ export default [
         {
           groups: ['builtin', 'external', 'internal', 'parent', 'sibling', 'index'],
           'newlines-between': 'always',
-          alphabetize: { order: 'asc', caseInsensitive: true },
-        },
-      ],
-    },
-  },
+          alphabetize: { order: 'asc', caseInsensitive: true }
+        }
+      ]
+    }
+  }
 ];

@@ -5,11 +5,13 @@
  * and implements resilience features for database connections
  */
 
-import mongoose from 'mongoose'
-import config from '../src/config/Config.js'
-import DatabaseFailover from '../src/utils/DatabaseFailover.js'
-import { verifyDatabaseConnection, waitForConnection } from './connectionHelpers.js'
-import { connectToDatabase, connectWithCredentials } from './connectionMethods.js'
+import mongoose from 'mongoose';
+
+import config from '../src/config/Config.js';
+import DatabaseFailover from '../src/utils/DatabaseFailover.js';
+
+import { verifyDatabaseConnection, waitForConnection } from './connectionHelpers.js';
+import { connectToDatabase, connectWithCredentials } from './connectionMethods.js';
 
 /**
  * Database failover instance for managing database connections with resilience
@@ -20,7 +22,7 @@ const databaseFailover = new DatabaseFailover({
     ? connectToDatabase
     : connectWithCredentials,
   enableCircuitBreaker: true
-})
+});
 
 /**
  * Connects to the database with resilience features
@@ -29,19 +31,16 @@ const databaseFailover = new DatabaseFailover({
  */
 const connectWithResilience = async () => {
   try {
-    return await databaseFailover.connect()
+    return await databaseFailover.connect();
+    // eslint-disable-next-line no-unused-vars
   } catch (error) {
-    console.debug('Failed to connect to any database', {
-      error: error.message,
-      stack: error.stack
-    })
-    throw error
+    throw new Error('DbConnectionError');
   }
-}
+};
 
 export {
   connectWithResilience,
   mongoose,
   verifyDatabaseConnection,
   waitForConnection
-}
+};
