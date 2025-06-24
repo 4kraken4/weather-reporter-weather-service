@@ -211,7 +211,6 @@ To maintain a clean and efficient development process, we use the following work
 ### Branch Workflow
 
 1. **Developing New Features**
-
    - Create a new feature branch from `testing`.
    - Naming convention: `feature/{short-description}`
    - Example: `feature/user-registration`
@@ -219,7 +218,6 @@ To maintain a clean and efficient development process, we use the following work
    - Once the feature is complete, thoroughly test it locally.
 
 2. **Fixing Bugs**
-
    - Create a new bug fix branch from `testing`.
    - Naming convention: `bugfix/{short-description}`
    - Example: `bugfix/fix-login-error`
@@ -227,7 +225,6 @@ To maintain a clean and efficient development process, we use the following work
    - Merge the bug fix branch into `testing`.
 
 3. **Hotfixes**
-
    - Create a new hotfix branch from `production`.
    - Naming convention: `hotfix/{short-description}`
    - Example: `hotfix/patch-critical-bug`
@@ -235,7 +232,6 @@ To maintain a clean and efficient development process, we use the following work
    - Merge the hotfix branch into both `production` and `master`.
 
 4. **Testing**
-
    - Merge feature and bug fix branches into `testing` for integration testing.
    - Ensure all tests pass in the `testing` branch.
    - Perform any necessary quality assurance processes.
@@ -258,27 +254,22 @@ git checkout -b feature/user-registration testing
 To maintain a clean and manageable Git repository, we follow specific naming conventions for our branches:
 
 - **Feature Branches:**
-
   - Naming convention: `feature/{short-description}`
   - Example: `feature/user-registration`
 
 - **Bug Fix Branches:**
-
   - Naming convention: `bugfix/{short-description}`
   - Example: `bugfix/fix-login-error`
 
 - **Hotfix Branches:**
-
   - Naming convention: `hotfix/{short-description}`
   - Example: `hotfix/patch-critical-bug`
 
 - **Release Branches:**
-
   - Naming convention: `release/{version-number}`
   - Example: `release/1.0.0`
 
 - **Documentation Branches:**
-
   - Naming convention: `doc/{short-description}`
   - Example: `doc/update-readme`
 

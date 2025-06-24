@@ -1,4 +1,4 @@
-import { mongoose } from './mongoose.js'
+import { mongoose } from './mongoose.js';
 
 const CounterSchema = new mongoose.Schema(
   {
@@ -15,8 +15,8 @@ const CounterSchema = new mongoose.Schema(
     timestamps: true,
     collection: 'Counters'
   }
-)
+);
 
-const Counter = mongoose.model('Counter', CounterSchema)
+const Counter = mongoose.model('Counter', CounterSchema);
 
-export default Counter
+export default Counter;
