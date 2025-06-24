@@ -204,9 +204,6 @@ zsdoc/data
 /tests/_output/*
 !/tests/_output/.gitkeep
 
-# package.json files
-package-lock.json
-
 # cert files
 *.crt
 *.pem
