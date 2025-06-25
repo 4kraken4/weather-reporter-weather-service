@@ -8,7 +8,7 @@ export class OpenWeather {
   );
 
   static async getCurrentWeather(cityId) {
-    const url = `${OpenWeather.service.currentWeatherDomain}/weather?id=${cityId}&appid=${OpenWeather.service.apiKey}`;
+    const url = `${OpenWeather.service.currentWeatherDomain}/weather?id=${cityId}&appid=${OpenWeather.service.apiKey}&units=${OpenWeather.service.units}&lang=${OpenWeather.service.lang}&mode=${OpenWeather.service.responseType}`;
     return OpenWeather.httpClient.get(url);
   }
 }
