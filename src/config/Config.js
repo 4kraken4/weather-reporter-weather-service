@@ -72,7 +72,7 @@ export default class Config {
 
   get openWeather() {
     return {
-      protocol: process.env.OPEN_WEATHER_PROTOCOL,
+      protocol: process.env.OPEN_WEATHER_PROTOCOL || 'https',
       host: process.env.OPEN_WEATHER_HOST,
       currentWeatherDomain: process.env.OPEN_WEATHER_CURRENT_WEATHER_DOMAIN,
       iconDomain: process.env.OPEN_WEATHER_ICON_DOMAIN,
