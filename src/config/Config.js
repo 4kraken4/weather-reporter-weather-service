@@ -18,19 +18,19 @@ export default class Config {
 
   get app() {
     return {
-      name: process.env.APP_NAME
+      name: process.env.APP_NAME || 'weather-reporter'
     };
   }
 
   get service() {
     return {
-      version: process.env.SERVICE_VERSION,
-      port: process.env.SERVICE_PORT,
-      name: process.env.SERVICE_NAME,
-      routePrefix: process.env.SERVICE_ROUTE_PREFIX,
+      version: process.env.SERVICE_VERSION || '1.0.0',
+      port: process.env.SERVICE_PORT || 9001,
+      name: process.env.SERVICE_NAME || 'weather-reporter-weather-service',
+      routePrefix: process.env.SERVICE_ROUTE_PREFIX || 'api/v1/weather',
       certPath: process.env.SERVER_CERT_PATH,
-      protocol: process.env.SERVICE_PROTOCOL,
-      host: process.env.SERVICE_HOST
+      protocol: process.env.SERVICE_PROTOCOL || 'http',
+      host: process.env.SERVICE_HOST || 'localhost'
     };
   }
 
