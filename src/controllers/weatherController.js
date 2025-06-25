@@ -1,3 +1,4 @@
+import GetCurrentWeatherByRegionName from '../domain/usecases/GetCurrentWeatherByRegionName.js';
 import GetCurrentWeatherForRegion from '../domain/usecases/GetCurrentWeatherForRegion.js';
 import SearchRegionsByName from '../domain/usecases/SearchRegionsByName.js';
 import { RegionRepositoryImpl } from '../infrastructure/orm/RegionRepositoryImpl.js';
@@ -41,6 +42,19 @@ const weatherController = {
       );
       const { cityId } = req.params;
       const weatherData = await getCurrentWeatherForRegion.execute(cityId);
+      res.status(200).json(weatherData);
+    } catch (error) {
+      next(error);
+    }
+  },
+  getCurrentWeatherByRegionName: async (req, res, next) => {
+    try {
+      const { region, code } = req.query;
+      const regionRepository = new RegionRepositoryImpl();
+      const getCurrentWeatherByRegionName = new GetCurrentWeatherByRegionName(
+        regionRepository
+      );
+      const weatherData = await getCurrentWeatherByRegionName.execute(region, code);
       res.status(200).json(weatherData);
     } catch (error) {
       next(error);
