@@ -14,12 +14,27 @@ service.disable('x-powered-by');
 service.disable('etag');
 service.use(express.json());
 service.use(express.urlencoded({ extended: true }));
+
 service.use(`/${serviceConfig.routePrefix}`, router);
 service.use(errorHandler);
 
-service.listen(serviceConfig.port, async () => {
-  await connectWithResilience();
-  console.log(
-    `Server is running on ${serviceConfig.protocol}://${serviceConfig.host}${serviceConfig.protocol === 'https' ? '' : `:${serviceConfig.port}`}`
-  );
-});
+// Initialize database connection
+connectWithResilience()
+  .then(() => {
+    console.log('Database connected successfully');
+  })
+  .catch(error => {
+    console.error('Database connection failed:', error);
+  });
+
+// For local development only
+// eslint-disable-next-line no-undef
+if (process.env.NODE_ENV !== 'production') {
+  service.listen(serviceConfig.port, () => {
+    console.log(
+      `Server is running on ${serviceConfig.protocol}://${serviceConfig.host}${serviceConfig.protocol === 'https' ? '' : `:${serviceConfig.port}`}`
+    );
+  });
+}
+
+export default service;
