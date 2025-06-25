@@ -6,8 +6,18 @@ export class RegionRepositoryImpl extends RegionRepository {
   constructor() {
     super();
   }
+
   async get10Regions() {
     return Regions.find().limit(10).exec();
+  }
+
+  async getRegionFromName(regionName, countryCode) {
+    return Regions.findOne({
+      name: { $regex: new RegExp(regionName, 'i') },
+      country: countryCode
+    })
+      .lean()
+      .exec();
   }
 
   async searchByName({
