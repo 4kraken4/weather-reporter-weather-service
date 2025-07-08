@@ -1,11 +1,11 @@
-/* eslint-disable no-undef */
 import dotenv from 'dotenv';
 
 export default class Config {
   constructor() {
     dotenv.config({ path: 'src/.env' });
     const env = process.env.NODE_ENV || 'development';
-    console.log(`Loading environment: ${env}`); // eslint-disable-line no-console
+    // eslint-disable-next-line no-console
+    console.log(`Loading environment: ${env}`);
     dotenv.config({ path: `src/.env.${env}` });
   }
 
@@ -70,8 +70,16 @@ export default class Config {
     };
   }
 
+  get apis() {
+    return {
+      openWeather: this.openWeather,
+      restCountries: this.restCountries
+    };
+  }
+
   get openWeather() {
     return {
+      name: process.env.OPEN_WEATHER_NAME || 'openWeather',
       protocol: process.env.OPEN_WEATHER_PROTOCOL || 'https',
       host: process.env.OPEN_WEATHER_HOST,
       currentWeatherDomain: process.env.OPEN_WEATHER_CURRENT_WEATHER_DOMAIN,
@@ -81,6 +89,42 @@ export default class Config {
       units: process.env.OPEN_WEATHER_UNITS || 'metric',
       lang: process.env.OPEN_WEATHER_LANG || 'en',
       responseType: process.env.OPEN_WEATHER_RESPONSE_MODE || 'json'
+    };
+  }
+
+  get restCountries() {
+    return {
+      name: process.env.REST_COUNTRIES_API_NAME || 'restCountries',
+      protocol: process.env.REST_COUNTRIES_API_PROTOCOL || 'https',
+      host: process.env.REST_COUNTRIES_API_HOST || 'restcountries.com/v3.1',
+      codeDetailsDomain:
+        process.env.REST_COUNTRIES_API_CODE_DETAILS_DOMAIN || 'alpha',
+      nameDetailsDomain: process.env.REST_COUNTRIES_API_NAME_DETAILS_DOMAIN || 'name'
+    };
+  }
+
+  get cache() {
+    return {
+      strategy: process.env.CACHE_STRATEGY || 'memory', // 'memory' or 'redis'
+      defaultTtl: parseInt(process.env.CACHE_DEFAULT_TTL, 10) || 300000, // 5 minutes
+      redis: {
+        host: process.env.REDIS_HOST || 'localhost',
+        port: parseInt(process.env.REDIS_PORT, 10) || 6379,
+        password: process.env.REDIS_PASSWORD || undefined,
+        database: parseInt(process.env.REDIS_DATABASE, 10) || 0,
+        keyPrefix: process.env.REDIS_KEY_PREFIX || 'weather:',
+        retryDelayOnFailover: parseInt(process.env.REDIS_RETRY_DELAY, 10) || 100,
+        enableReadyCheck: process.env.REDIS_ENABLE_READY_CHECK !== 'false',
+        maxRetriesPerRequest: parseInt(process.env.REDIS_MAX_RETRIES, 10) || 3
+      }
+    };
+  }
+
+  get logging() {
+    return {
+      level: process.env.LOG_LEVEL || 'info', // debug, info, warn, error
+      enabledInProduction: process.env.LOG_ENABLED_IN_PROD !== 'false',
+      format: process.env.LOG_FORMAT || 'simple' // simple, json (for future extensibility)
     };
   }
 }
