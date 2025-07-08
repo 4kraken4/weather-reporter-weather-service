@@ -9,12 +9,6 @@ function isNetworkError(error) {
   );
 }
 
-function handleNetworkError(error) {
-  const port = getServicePort(error);
-  const serviceName = getServiceName(port);
-  return `It seems ${serviceName} service is currently unavailable. Please try again later.`;
-}
-
 const getServicePort = error => error?.baseURL?.split(':')[2]?.split('/')[0];
 
 const getServiceName = port => {
@@ -29,6 +23,12 @@ const getServiceName = port => {
       return 'an important';
   }
 };
+
+function handleNetworkError(error) {
+  const port = getServicePort(error);
+  const serviceName = getServiceName(port);
+  return `It seems ${serviceName} service is currently unavailable. Please try again later.`;
+}
 
 const generateError = (status = 400, code) => {
   return {
@@ -61,36 +61,23 @@ function getError(error) {
 }
 
 const errorList = {
-  BadRequestError: generateError('BadRequestError'),
-  PrivilegeMissingError: generateError('PrivilegeMissingError'),
-  InvalidEmailError: generateError('InvalidEmailError'),
-  InvalidPasswordError: generateError('InvalidPasswordError'),
-  InvalidUsernameError: generateError('InvalidUsernameError'),
-  InvalidInputError: generateError('InvalidInputError'),
-  TokenNotProvidedError: generateError(401, 'TokenNotProvidedError'),
-  ApiKeyMissingError: generateError(401, 'ApiKeyMissingError'),
-  AuthorizationHeaderMissingError: generateError(
-    401,
-    'AuthorizationHeaderMissingError'
+  BadRequestError: generateError(400, 'BadRequestError'),
+  InvalidSearchTermError: generateError(400, 'InvalidSearchTermError'),
+  InvalidCountryCodeError: generateError(400, 'InvalidCountryCodeError'),
+  InvalidRegionIdError: generateError(400, 'InvalidRegionIdError'),
+  BulkWeatherArrayNotProvidedError: generateError(
+    400,
+    'BulkWeatherArrayNotProvidedError'
   ),
-  InvalidTokenError: generateError(401, 'InvalidTokenError'),
-  TokenExpiredError: generateError(401, 'TokenExpiredError'),
-  ApikeyExpiredError: generateError(401, 'ApikeyExpiredError'),
-  TokenRevokedError: generateError(401, 'TokenRevokedError'),
-  ApikeyRevokedError: generateError(401, 'ApikeyRevokedError'),
+  NoCitiesProvidedError: generateError(400, 'NoCitiesProvidedError'),
+  TooManyCitiesError: generateError(400, 'TooManyCitiesError'),
   UnauthorizedError: generateError(401, 'UnauthorizedError'),
-  BadCredentialsError: generateError(401, 'BadCredentialsError'),
   CORSDeniedError: generateError(401, 'CORSDeniedError'),
-  UserNotFoundError: generateError(404, 'UserNotFoundError'),
-  PrivilegeNotFoundError: generateError(404, 'PrivilegeNotFoundError'),
   TimeoutError: generateError(408, 'TimeoutError'),
   RegionNotFoundError: generateError(409, 'RegionNotFoundError'),
   RegionSearchError: generateError(409, 'RegionSearchError'),
-  WeatherDataNotFoundError: generateError(409, 'WeatherDataNotFoundError'),
   WeatherServiceError: generateError(409, 'WeatherServiceError'),
   InvalidRegionSearchTermError: generateError(409, 'InvalidRegionSearchTermError'),
-  UserExistsError: generateError(409, 'UserExistsError'),
-  PrivilegeConflictError: generateError(409, 'PrivilegeConflictError'),
   InternalServerError: generateError(500, 'InternalServerError'),
   CircuitBreakerOpenError: generateError(503, 'CircuitBreakerOpenError'),
   ECONNABORTED: generateError(503, 'ECONNABORTED'),
@@ -100,11 +87,13 @@ const errorList = {
 
 const errorHandler = (err, _req, res, _next) => {
   const parsedError = getError(err);
+  // parsedError comes from controlled error mapping, not user input
+  // eslint-disable-next-line security/detect-object-injection
   let error = errorList[parsedError] || errorList.InternalServerError;
 
   // check if error is a network error
   if (error && isNetworkError(error)) {
-    error = { error: error, baseURL: error?.baseURL || err?.config?.baseURL };
+    error = { error, baseURL: error?.baseURL || err?.config?.baseURL };
     error.message = handleNetworkError(error);
   }
   res.status(error.status).json({ error });
