@@ -13,7 +13,7 @@
     }
   ],
   "env": {
-    "SERVICE_ROUTE_PREFIX": "api/v1",
+    "SERVICE_ROUTE_PREFIX": "api/v1/weather",
     "NODE_ENV": "production"
   }
 }
