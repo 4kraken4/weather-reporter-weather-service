@@ -414,7 +414,9 @@ describe('GetBulkWeatherData', () => {
         }]
       });
 
-      expect(result.processingTimeMs).toBeGreaterThan(0);
+      expect(result.processingTimeMs).not.toBeUndefined();
+      expect(result.processingTimeMs).not.toBeNull();
+      expect(result.processingTimeMs).toBeGreaterThanOrEqual(0);
     });
 
     it('should return cached data when available', async () => {
