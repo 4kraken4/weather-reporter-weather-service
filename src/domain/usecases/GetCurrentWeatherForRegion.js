@@ -7,13 +7,25 @@ export default class GetCurrentWeatherForRegion {
   }
 
   async execute(regionId) {
-    const weatherData = await OpenWeather.getCurrentWeather(regionId);
-    if (!weatherData || !weatherData.data) {
-      throw new Error('WeatherDataNotFoundError');
+    if (!/^\d+$/.test(regionId)) {
+      throw new Error('InvalidRegionIdError');
     }
-    return {
-      success: true,
-      data: Weather.fromJson(weatherData?.data)
-    };
+    try {
+      const weatherData = await OpenWeather.getCurrentWeather(regionId);
+      if (!weatherData || !weatherData.data) {
+        throw new Error('WeatherDataNotFoundError');
+      }
+      return {
+        success: true,
+        data: Weather.fromJson(weatherData?.data)
+      };
+    } catch (error) {
+      // If it's our own WeatherDataNotFoundError, re-throw it
+      if (error.message === 'WeatherDataNotFoundError') {
+        throw error;
+      }
+      // For other errors, propagate the original error
+      throw error;
+    }
   }
 }
