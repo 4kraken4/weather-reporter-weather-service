@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import express from 'express';
 
 import { connectWithResilience } from '../db/mongoose.js';
@@ -6,6 +5,10 @@ import { connectWithResilience } from '../db/mongoose.js';
 import Config from './config/Config.js';
 import errorHandler from './infrastructure/middlewares/errorHandler.js';
 import router from './interfaces/http/routes/routes.js';
+import { createModuleLogger } from './utils/Logger.js';
+import UrlUtils from './utils/UrlUtils.js';
+
+const logger = createModuleLogger('App');
 
 const serviceConfig = Config.getInstance().service;
 const service = express();
@@ -18,22 +21,24 @@ service.use(express.urlencoded({ extended: true }));
 service.use(`/${serviceConfig.routePrefix}`, router);
 service.use(errorHandler);
 
-// Initialize database connection
-connectWithResilience()
-  .then(() => {
-    console.log('Database connected successfully');
-  })
-  .catch(error => {
-    console.error('Database connection failed:', error);
-  });
+// Only initialize database connection if not in test environment
 
-// For local development only
-// eslint-disable-next-line no-undef
-if (process.env.NODE_ENV !== 'production') {
+if (process.env.NODE_ENV !== 'test') {
+  // Initialize database connection
+  connectWithResilience()
+    .then(() => {
+      logger.info('Database connected successfully');
+    })
+    .catch(error => {
+      logger.error('Database connection failed:', error);
+    });
+}
+
+// For local development only - don't start server during tests
+if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'test') {
   service.listen(serviceConfig.port, () => {
-    console.log(
-      `Server is running on ${serviceConfig.protocol}://${serviceConfig.host}${serviceConfig.protocol === 'https' ? '' : `:${serviceConfig.port}`}`
-    );
+    const serverUrl = UrlUtils.buildServiceBaseUrl(serviceConfig, false);
+    logger.info(`Server is running on ${serverUrl}`);
   });
 }
 

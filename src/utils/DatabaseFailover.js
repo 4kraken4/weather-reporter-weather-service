@@ -5,6 +5,8 @@
 
 import config from '../config/Config.js';
 
+import { createModuleLogger } from './Logger.js';
+
 /**
  * DatabaseFailover class for managing database connections with failover capabilities
  * Implements backup data sources and graceful degradation for database operations
@@ -24,6 +26,7 @@ class DatabaseFailover {
     this.connectFn = options.connectFn;
     this.isUsingBackup = false;
     this.lastError = null;
+    this.logger = createModuleLogger('Database Failover');
   }
 
   /**
@@ -71,7 +74,7 @@ class DatabaseFailover {
    */
   async _connectToBackup() {
     if (!this.backupConfig) {
-      console.warn('No backup database configured');
+      this.logger.warn('No backup database configured');
       throw new Error('NoBackupDatabaseConfiguredError');
     }
 
@@ -89,8 +92,7 @@ class DatabaseFailover {
       // Mark that we're using backup
       this.isUsingBackup = true;
 
-      // eslint-disable-next-line no-console
-      console.info('Successfully connected to backup database');
+      this.logger.info('Successfully connected to backup database');
 
       // Schedule attempt to reconnect to primary
       this._scheduleReconnectToPrimary();
@@ -108,8 +110,7 @@ class DatabaseFailover {
   _scheduleReconnectToPrimary() {
     const reconnectInterval = this.primaryConfig.reconnectInterval || 60000; // 1 minute
 
-    // eslint-disable-next-line no-console
-    console.info(
+    this.logger.info(
       `Scheduling reconnect to primary database in ${reconnectInterval}ms`
     );
 

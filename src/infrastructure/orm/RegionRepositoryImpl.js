@@ -3,14 +3,6 @@ import RegionRepository from '../../domain/repositories/RegionRepository.js';
 import { Regions } from './RegionSchema.js';
 
 export class RegionRepositoryImpl extends RegionRepository {
-  constructor() {
-    super();
-  }
-
-  async get10Regions() {
-    return Regions.find().limit(10).exec();
-  }
-
   async getRegionFromName(regionName, countryCode) {
     return Regions.findOne({
       name: { $regex: new RegExp(regionName, 'i') },
@@ -20,33 +12,27 @@ export class RegionRepositoryImpl extends RegionRepository {
       .exec();
   }
 
-  async searchByName({
-    partialName,
-    country,
-    minPopulation,
-    page,
-    pageSize,
-    sortBy
-  }) {
-    if (!partialName || typeof partialName !== 'string' || partialName.length < 2) {
-      throw new Error('InvalidRegionSearchTermError');
-    }
-    const query = {
-      name: { $regex: partialName, $options: 'i' },
-      'stat.population': { $gte: minPopulation }
-    };
+  async searchByName({ partialName, country, page, pageSize, sortBy }) {
+    // Build base query with required filters
+    const query = {};
 
-    if (country) {
-      query.country = country;
+    // Add partial name filter if provided
+    if (partialName && partialName.trim()) {
+      query.name = { $regex: partialName.trim(), $options: 'i' };
+    }
+
+    // Add country filter if provided (case-insensitive for flexibility)
+    if (country && country.trim()) {
+      query.country = { $regex: new RegExp(`^${country.trim()}$`, 'i') };
     }
 
     const projection = {
       _id: 0,
       id: 1,
       name: 1,
+      state: 1,
       country: 1,
       coord: 1,
-      'stat.population': 1,
       zoom: 1
     };
 
@@ -58,10 +44,10 @@ export class RegionRepositoryImpl extends RegionRepository {
 
     // Determine sort order
     const sortOrder = {};
-    if (sortBy === 'population') {
-      sortOrder['stat.population'] = -1;
+    if (sortBy === 'name') {
+      sortOrder.name = 1;
     } else {
-      sortOrder.name = 1; // Default sort by name ascending
+      sortOrder.name = -1;
     }
 
     const results = await Regions.find(query)

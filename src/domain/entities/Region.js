@@ -1,9 +1,9 @@
 export default class Region {
-  constructor(id, name, country, population, coordinates) {
+  constructor(id, name, state, countryCode, coordinates) {
     this.id = id;
     this.name = name;
-    this.country = country;
-    this.population = population;
+    this.state = state;
+    this.countryCode = countryCode;
     this.coordinates = coordinates;
   }
 
@@ -11,8 +11,8 @@ export default class Region {
     return new Region(
       json.id,
       json.name,
-      json.country,
-      json.population,
+      json.state,
+      json.countryCode,
       json.coordinates
     );
   }
@@ -21,8 +21,8 @@ export default class Region {
     return {
       id: this.id,
       name: this.name,
-      country: this.country,
-      population: this.population,
+      state: this.state,
+      countryCode: this.countryCode,
       coordinates: this.coordinates
     };
   }
@@ -36,6 +36,8 @@ export default class Region {
   }
 
   toString() {
-    return `${this.name}, ${this.country} (Pop: ${this.population.toLocaleString()}) [${this.latitude.toFixed(4)}, ${this.longitude.toFixed(4)}]`;
+    return `${this.name}, ${this.state}
+    [${this.latitude.toFixed(4)}, ${this.longitude.toFixed(4)}], 
+    ${this.countryCode ? `(${this.countryCode})` : ''}`;
   }
 }

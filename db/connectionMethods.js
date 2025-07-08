@@ -39,7 +39,6 @@ mongoose.connection.on('error', error => {
  * Event listener for the 'open' event of the database connection.
  */
 mongoose.connection.once('open', () => {
-  // eslint-disable-next-line no-console
   console.debug('Database connection established successfully');
 });
 
@@ -54,12 +53,11 @@ mongoose.connection.on('disconnected', () => {
  * Event listener for the 'reconnected' event of the database connection.
  */
 mongoose.connection.on('reconnected', () => {
-  // eslint-disable-next-line no-console
   console.debug('Successfully reconnected to the database');
 });
 
 const connectToDatabase = async () => {
-  // eslint-disable-next-line no-console
+
   console.debug('Attempting to connect to database with certificate authentication');
   try {
     const credentials = config.getInstance().db.mongo.certPath;
@@ -112,7 +110,7 @@ const connectToDatabase = async () => {
  */
 const connectWithCredentials = async () => {
   try {
-    // eslint-disable-next-line no-console
+
     console.debug(
       'Attempting to connect to database with username/password authentication'
     );
