@@ -1,0 +1,68 @@
+version: '3.8'
+
+services:
+  # Weather service (production)
+  weather-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: weather-service-prod
+    ports:
+      - '9001:9001'
+    environment:
+      - NODE_ENV=production
+      - SERVICE_PORT=9001
+      # Override specific values for Docker production environment
+      - SERVICE_HOST=0.0.0.0
+      - SERVICE_PROTOCOL=http
+      # Database overrides for production Docker deployment
+      - MONGODB_CONNECTION=${MONGODB_CONNECTION:-mongodb://admin:password@mongodb:27017/WeatherReporter?authSource=admin}
+      - MONGODB_USE_CERT_AUTH=${MONGODB_USE_CERT_AUTH:-false}
+      - CACHE_STRATEGY=${CACHE_STRATEGY:-redis}
+      - REDIS_HOST=${REDIS_HOST:-redis}
+      - REDIS_PORT=${REDIS_PORT:-6379}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+        reservations:
+          memory: 256M
+          cpus: '0.25'
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "require('http').get('http://localhost:9001/api/v1/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) }).on('error', () => process.exit(1))"
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - weather-network
+
+  # Nginx reverse proxy
+  nginx:
+    image: nginx:alpine
+    container_name: weather-nginx
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - weather-service
+    networks:
+      - weather-network
+    restart: unless-stopped
+
+networks:
+  weather-network:
+    driver: bridge
