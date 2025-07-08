@@ -1,10 +1,14 @@
 import axios from 'axios';
 import retry from 'retry';
 
+import { createModuleLogger } from '../../utils/Logger.js';
+
+const logger = createModuleLogger('HttpClient');
+
 class HttpClient {
   constructor(baseURL) {
     this.client = axios.create({
-      baseURL: baseURL,
+      baseURL,
       timeout: 10000 // If our function takes longer than 10 seconds, trigger a failure.
     });
   }
@@ -39,8 +43,7 @@ class HttpClient {
             errorCode === 429
           ) {
             if (operation.retry(error)) {
-              // eslint-disable-next-line no-console
-              console.log(`Retry attempt #${currentAttempt} failed, retrying...`);
+              logger.debug(`Retry attempt #${currentAttempt} failed, retrying...`);
               if (currentAttempt === options.retries) {
                 reject(error);
               }
@@ -54,7 +57,11 @@ class HttpClient {
   }
 
   async get(url, config = {}) {
-    return this.retryOperation(() => this.client.get(url, config));
+    // If url is absolute, use it directly; if relative, use with baseURL
+    const requestConfig = url.startsWith('http')
+      ? { ...config, baseURL: '' }
+      : config;
+    return this.retryOperation(() => this.client.get(url, requestConfig));
   }
 
   async post(url, data, config = {}) {
