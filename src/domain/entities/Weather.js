@@ -42,7 +42,8 @@ export default class Weather {
   }
 
   get tempCelsius() {
-    return this.metrics.temp - 273.15;
+    // Temperature is already in Celsius when using metric units
+    return this.metrics.temp;
   }
 
   get tempFahrenheit() {

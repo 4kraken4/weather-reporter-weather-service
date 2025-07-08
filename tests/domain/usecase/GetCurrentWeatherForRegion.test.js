@@ -2,6 +2,17 @@ import Weather from '../../../src/domain/entities/Weather.js';
 import GetCurrentWeatherForRegion from '../../../src/domain/usecases/GetCurrentWeatherForRegion.js';
 import { OpenWeather } from '../../../src/interfaces/services/open-weather/OpenWeather.js';
 
+// Mock the database connection to prevent hanging processes
+jest.mock('../../../db/mongoose.js', () => ({
+  connectWithResilience: jest.fn().mockResolvedValue(true),
+  mongoose: {
+    connection: {
+      readyState: 0,
+      close: jest.fn().mockResolvedValue(true)
+    }
+  }
+}));
+
 // Mock the OpenWeather service
 jest.mock('../../../src/interfaces/services/open-weather/OpenWeather.js', () => ({
   OpenWeather: {
@@ -17,6 +28,12 @@ describe('GetCurrentWeatherForRegion', () => {
     weatherRepository = {};
     getCurrentWeatherForRegion = new GetCurrentWeatherForRegion(weatherRepository);
     jest.clearAllMocks();
+  });
+
+  afterAll(async () => {
+    // Clean up Jest timers
+    jest.clearAllTimers();
+    jest.useRealTimers();
   });
 
   describe('execute()', () => {

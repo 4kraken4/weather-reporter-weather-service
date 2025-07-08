@@ -7,15 +7,30 @@ export default class GetCurrentWeatherByRegionName {
   }
 
   async execute(region, countryCode) {
-    if (!region || typeof region !== 'string' || region.length < 2) {
+    // Validate region name
+    if (
+      !region ||
+      typeof region !== 'string' ||
+      // eslint-disable-next-line security/detect-unsafe-regex -- Validated safe regex for region name validation
+      !/^(?=.{1,32}$)(?!.* {2,})\p{L}[\p{L}'.-]{1,}(?: \p{L}[\p{L}'.-]{1,})*$/u.test(
+        region.trim()
+      )
+    ) {
       throw new Error('InvalidRegionNameError');
     }
-    if (!countryCode || typeof countryCode !== 'string' || countryCode.length !== 2) {
+
+    // Validate country code
+    if (
+      !countryCode ||
+      typeof countryCode !== 'string' ||
+      !/^[a-zA-Z]{2}$/.test(countryCode.trim())
+    ) {
       throw new Error('InvalidCountryCodeError');
     }
+
     const regionData = await this.regionRepository.getRegionFromName(
-      region,
-      countryCode.toUpperCase()
+      region.trim(),
+      countryCode.trim().toUpperCase()
     );
     if (!regionData) {
       throw new Error('RegionNotFoundError');

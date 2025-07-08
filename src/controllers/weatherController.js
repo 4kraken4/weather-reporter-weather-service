@@ -1,3 +1,4 @@
+import GetBulkWeatherData from '../domain/usecases/GetBulkWeatherData.js';
 import GetCurrentWeatherByRegionName from '../domain/usecases/GetCurrentWeatherByRegionName.js';
 import GetCurrentWeatherForRegion from '../domain/usecases/GetCurrentWeatherForRegion.js';
 import SearchRegionsByName from '../domain/usecases/SearchRegionsByName.js';
@@ -9,21 +10,16 @@ const weatherController = {
       const {
         q: searchTerm,
         country,
+        code,
         minPopulation,
         page = 1,
         pageSize = 10
       } = req.query;
-      if (!searchTerm) {
-        return res.status(400).json({
-          success: false,
-          message: 'Search term (q) is required'
-        });
-      }
       const regionRepository = new RegionRepositoryImpl();
       const searchCitiesByName = new SearchRegionsByName(regionRepository);
       const regions = await searchCitiesByName.execute({
         partialName: searchTerm,
-        country,
+        country: country || code,
         minPopulation: minPopulation ? parseInt(minPopulation) : 0,
         page: parseInt(page),
         pageSize: Math.min(parseInt(pageSize), 20),
@@ -56,6 +52,29 @@ const weatherController = {
       );
       const weatherData = await getCurrentWeatherByRegionName.execute(region, code);
       res.status(200).json(weatherData);
+    } catch (error) {
+      next(error);
+    }
+  },
+  getBulkWeather: async (req, res, next) => {
+    try {
+      const { cities } = req.body;
+
+      if (!cities || !Array.isArray(cities)) {
+        throw new Error('BulkWeatherArrayNotProvidedError');
+      }
+
+      if (cities.length === 0) {
+        throw new Error('NoCitiesProvidedError');
+      }
+
+      if (cities.length > 15) {
+        throw new Error('TooManyCitiesError');
+      }
+
+      const getBulkWeatherData = new GetBulkWeatherData();
+      const result = await getBulkWeatherData.execute(cities);
+      res.status(200).json(result);
     } catch (error) {
       next(error);
     }
