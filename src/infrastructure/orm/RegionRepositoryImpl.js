@@ -14,49 +14,69 @@ export class RegionRepositoryImpl extends RegionRepository {
 
   async searchByName({ partialName, country, page, pageSize, sortBy }) {
     // Build base query with required filters
-    const query = {};
+    const match = {};
 
     // Add partial name filter if provided
     if (partialName && partialName.trim()) {
-      query.name = { $regex: partialName.trim(), $options: 'i' };
+      match.name = { $regex: partialName.trim(), $options: 'i' };
     }
 
     // Add country filter if provided (case-insensitive for flexibility)
     if (country && country.trim()) {
-      query.country = { $regex: new RegExp(`^${country.trim()}$`, 'i') };
+      match.country = { $regex: new RegExp(`^${country.trim()}$`, 'i') };
     }
-
-    const projection = {
-      _id: 0,
-      id: 1,
-      name: 1,
-      state: 1,
-      country: 1,
-      coord: 1,
-      zoom: 1
-    };
-
-    // Get total count for pagination
-    const totalCount = await Regions.countDocuments(query);
-
-    // Calculate skip value
-    const skip = (page - 1) * pageSize;
 
     // Determine sort order
-    const sortOrder = {};
-    if (sortBy === 'name') {
-      sortOrder.name = 1;
-    } else {
-      sortOrder.name = -1;
-    }
+    const sortOrder = sortBy === 'name' ? 1 : -1;
 
-    const results = await Regions.find(query)
-      .select(projection)
-      .sort(sortOrder)
-      .skip(skip)
-      .limit(pageSize)
-      .lean()
-      .exec();
+    // Aggregation pipeline to get unique names only
+    const pipeline = [
+      { $match: match },
+      {
+        $group: {
+          _id: { name: '$name', country: '$country', state: '$state' },
+          doc: { $first: '$$ROOT' },
+          count: { $sum: 1 }
+        }
+      },
+      { $match: { count: { $gt: 1 } } },
+      { $replaceRoot: { newRoot: '$doc' } },
+      { $sort: { name: sortOrder } },
+      { $skip: (page - 1) * pageSize }, // Calculate skip value
+      { $limit: pageSize },
+      {
+        $project: {
+          _id: 0,
+          id: 1,
+          name: 1,
+          state: 1,
+          country: 1,
+          coord: 1,
+          zoom: 1
+        }
+      }
+    ];
+
+    // Get total count of unique names
+    const countPipeline = [
+      { $match: match },
+      {
+        $group: {
+          _id: '$name',
+          count: { $sum: 1 }
+        }
+      },
+      { $match: { count: 1 } },
+      { $count: 'totalCount' }
+    ];
+
+    const [results, countResult] = await Promise.all([
+      Regions.aggregate(pipeline).allowDiskUse(true).exec(),
+      Regions.aggregate(countPipeline).allowDiskUse(true).exec()
+    ]);
+
+    // Get total count for pagination
+    const totalCount = countResult[0]?.totalCount || 0;
 
     return {
       results: results.map(city => ({
