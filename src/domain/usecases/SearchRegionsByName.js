@@ -123,16 +123,21 @@ export default class SearchRegionsByName {
       return countries.map(country => {
         const data = country.data[0];
         return {
-          code: data?.cca2.toLowerCase(),
-          name: data?.name.common.toLowerCase() ?? 'unknown',
+          code: data?.cca2 ? data.cca2.toLowerCase() : null,
+          name: data?.name?.common ? data.name.common.toLowerCase() : 'unknown',
           population: data?.population ?? 0,
-          region: data?.region.toLowerCase() ?? 'unknown',
-          subregion: data?.subregion.toLowerCase() ?? 'unknown',
-          capital: data?.capital ? data?.capital[0] : null,
+          region: data?.region ? data.region.toLowerCase() : 'unknown',
+          subregion: data?.subregion ? data.subregion.toLowerCase() : 'unknown',
+          capital:
+            Array.isArray(data?.capital) && data.capital.length > 0
+              ? data.capital[0]
+              : null,
           flags: {
-            png: data?.flags.png ?? null,
-            svg: data?.flags.svg ?? null,
-            alt: data?.flags.alt ?? `Flag of ${data?.name.common}`
+            png: data?.flags?.png ?? null,
+            svg: data?.flags?.svg ?? null,
+            alt:
+              data?.flags?.alt ??
+              (data?.name?.common ? `Flag of ${data.name.common}` : null)
           },
           maps: data?.maps ?? null
         };
