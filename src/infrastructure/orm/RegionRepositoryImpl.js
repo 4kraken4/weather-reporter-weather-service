@@ -39,7 +39,6 @@ export class RegionRepositoryImpl extends RegionRepository {
           count: { $sum: 1 }
         }
       },
-      { $match: { count: { $gt: 1 } } },
       { $replaceRoot: { newRoot: '$doc' } },
       { $sort: { name: sortOrder } },
       { $skip: (page - 1) * pageSize }, // Calculate skip value
